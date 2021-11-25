@@ -8,9 +8,14 @@ package vgDBApp;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
+
 import org.json.*;
 import java.io.*;
 import java.net.*;
+import java.util.*;
+
+import javax.swing.*;
 
 public class VGDBApp extends Frame implements ActionListener, WindowListener{
 
@@ -21,6 +26,8 @@ public class VGDBApp extends Frame implements ActionListener, WindowListener{
 	private static final long serialVersionUID = 1L;
 	
 	Label lbl = new Label();
+	JLabel lbl_help = new JLabel();
+	boolean check = true;
 	TextField gameChoice = new TextField();
 	Button btn_sub = new Button();
 	
@@ -29,6 +36,7 @@ public class VGDBApp extends Frame implements ActionListener, WindowListener{
 	String desc_raw = "";
 	String metaURL = "";
 	String imageURL = "";
+	java.util.List<String> settingList = new ArrayList<String>();
 	
 	public VGDBApp(){
 		initGUI();
@@ -43,12 +51,19 @@ public class VGDBApp extends Frame implements ActionListener, WindowListener{
 				break;
 			case "SubmitBtn":
 				try {
+					
 					String choice = gameChoice.getText();
 					connectToAPI(choice);
-					ShowData appB = new ShowData(name, releaseDate, imageURL, desc_raw, metaURL);
+					
+					if(check == true) {
+						ShowData appB = new ShowData(name, releaseDate, imageURL, desc_raw, metaURL);
+					}
 				}
 				catch(IOException e) {
 					e.printStackTrace();
+				}
+				catch(InterruptedException iE) {
+					
 				}
 				break;
 		}
@@ -80,7 +95,7 @@ public class VGDBApp extends Frame implements ActionListener, WindowListener{
 		setBounds(x, y, size * 2, size);
 		setVisible(true);
 		setLayout(null);
-		//System.out.println(x);
+		
 		initWidgets(size, size * 2);
 	}
 	
@@ -98,17 +113,23 @@ public class VGDBApp extends Frame implements ActionListener, WindowListener{
 		btn_sub.setBackground(Color.BLACK);
 		btn_sub.addActionListener(this);
 		
+		lbl_help = new JLabel();
+		lbl_help.setText("");
+		lbl_help.setBounds(10, 340, 50, 50);
+		
 		
 		add(lbl);
+		add(lbl_help);
 		add(gameChoice);
 		add(btn_sub);
 	}
 	
 	public void connectToAPI(String str) throws IOException {
 		String getId = recieveJSON(str, 0);
-		//System.err.println(getId);
+		
 		if(getId.startsWith("0", 9)) {
-			System.err.println("There were no results for that serach term, please try again.\n");
+			System.err.println("There were no results for that search term, please try again.\n");
+			check = false;
 		}
 		else {	
 			JSONObject jsonObj = new JSONObject(getId);
@@ -119,7 +140,6 @@ public class VGDBApp extends Frame implements ActionListener, WindowListener{
 			
 			String trueJSON = recieveJSON(str, gID);
 			
-			//System.err.println(trueJSON);
 			
 			JSONObject finalObj = new JSONObject(trueJSON);
 			
@@ -137,15 +157,26 @@ public class VGDBApp extends Frame implements ActionListener, WindowListener{
 			desc_raw = desc_raw.replaceAll("’", "'");
 			desc_raw = desc_raw.replaceAll("™", "");
 			
+			if(desc_raw.equals("")) {
+				desc_raw = finalObj.getString("description");
+			}
+			
 			metaURL = finalObj.getString("metacritic_url");
 			
-			imageURL = finalObj.getString("background_image");
+			
+			
+			if(finalObj.isNull("background_image")) {
+				imageURL = "N/A";
+			}
+			else {
+				imageURL = finalObj.getString("background_image");
+			}
 			
 			if(metaURL.equals("")) {
 				metaURL = "N/A";
 			}
 			
-			//System.out.println(name + "\n" + releaseDate + "\n" + desc_raw);
+			check = true;
 		}
 	}
 	
@@ -153,7 +184,7 @@ public class VGDBApp extends Frame implements ActionListener, WindowListener{
 		if(id == 0) {
 			String searchExact = searchParam;
 			
-			searchExact = searchExact.replaceAll("\s", "%20");
+			searchExact = searchExact.replaceAll(" ", "%20");
 			
 			URL url = new URL("https://api.rawg.io/api/games?key=efac59c034d14b71a4a8628d2ea3e185&search="+ searchExact +"&search_exact=true&page_size=1");
 			
@@ -200,6 +231,17 @@ public class VGDBApp extends Frame implements ActionListener, WindowListener{
 				}
 			}
 		}
+	}
+	
+	public BufferedImage resize(BufferedImage img) {
+		Image tmp = img.getScaledInstance(50, 50, Image.SCALE_SMOOTH);
+		BufferedImage dimg = new BufferedImage(50, 50, BufferedImage.TYPE_INT_ARGB);
+		
+		Graphics2D g2D = dimg.createGraphics();
+		g2D.drawImage(tmp, 0, 0, null);
+		g2D.dispose();
+		
+		return dimg;
 	}
 	@Override
 	public void windowOpened(WindowEvent e) {

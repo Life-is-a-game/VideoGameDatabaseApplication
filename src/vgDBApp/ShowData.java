@@ -10,33 +10,41 @@ package vgDBApp;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
+import javax.swing.*;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import javax.imageio.ImageIO;
 
 @SuppressWarnings("serial")
-public class ShowData extends Frame implements ActionListener{
+public class ShowData extends Frame implements ActionListener, WindowListener{
 
 	Label lbl_top = new Label();
 	Button returnBtn = new Button();
 	Label lbl_name = new Label();
 	Label lbl_releaseDate = new Label();
-	Container game_img = new Container();
+	Button btnShowImage = new Button();
 	BufferedImage img = null;
 	Label lbl_meta = new Label();
 	Label nameTxt = new Label();
 	Label rDateTxt = new Label();
 	TextArea game_desc = new TextArea();
 	Label meta_URL = new Label();
+	Graphics g = null;
+	String imageUrl;
+	String[] appSettings;
 	
-	public ShowData(String name, String rDate, String imgURL, String desc, String m_URL) {
+	public ShowData(String name, String rDate, String imgURL, String desc, String m_URL) throws InterruptedException, IOException, MalformedURLException {
 		int guiSize = initGUI();
+		imageUrl = imgURL;
+		this.addWindowListener(this);
 		initWidgets(guiSize, name, rDate, imgURL, desc, m_URL);
+		this.setVisible(true);
 	}
 	
 	public int initGUI() {
-		setTitle("Video Game Database Application");
+		setTitle("Video Game Database Application: Game Information");
 		
 		Dimension a = getToolkit().getScreenSize();
 		double width = a.getWidth();
@@ -57,11 +65,10 @@ public class ShowData extends Frame implements ActionListener{
 		setBounds(x, y, size, size);
 		setVisible(true);
 		setLayout(null);
-		//System.out.println(x);
 		return size;
 	}
 	
-	public void initWidgets(int size, String name, String release, String imageURL, String desc, String meta) {
+	public void initWidgets(int size, String name, String release, String imageURL, String desc, String meta) throws MalformedURLException, IOException {
 		lbl_top = new Label("Game Info:");
 		lbl_top.setAlignment(Label.CENTER);
 		lbl_top.setBounds(0, 30, size, 100);
@@ -76,12 +83,13 @@ public class ShowData extends Frame implements ActionListener{
 		lbl_releaseDate = new Label("Release Date: ");
 		lbl_releaseDate.setBounds(10, 200, 100, 25);
 		
-		game_img = new Container();
-		game_img.setBounds(10, 250, 100, 250);
-		game_img.setVisible(true);
+//		lbl2 = new JLabel();
+//		lbl2.setText("");
+//		lbl2.setBounds(10, 250, 100, 250);
+//		lbl2.setVisible(true);
 		
 		
-		lbl_meta = new Label("Metacritic Score: ");
+		lbl_meta = new Label("Metacritic URL: ");
 		lbl_meta.setBounds(10, 525, 100, 25);
 		
 		nameTxt = new Label();
@@ -93,7 +101,7 @@ public class ShowData extends Frame implements ActionListener{
 		rDateTxt.setText(release);
 		
 		game_desc = new TextArea();
-		game_desc.setBounds(200, 250, size - 240, 250);
+		game_desc.setBounds(10, 250, size - 20, 250);
 		game_desc.setFocusable(false);
 		game_desc.setText(desc);
 		
@@ -103,47 +111,22 @@ public class ShowData extends Frame implements ActionListener{
 		
 		returnBtn = new Button("Return");
 		returnBtn.setBounds(size - 116, 575, 75, 25);
+		returnBtn.setName("btnReturn");
 		returnBtn.addActionListener(this);
 		
+		btnShowImage = new Button("Show Image");
+		btnShowImage.setBounds(10, 575, 75, 25);
+		btnShowImage.setName("btnShow");
+		btnShowImage.addActionListener(this);
+		
 		addWidgets();
-		
-		Graphics g = game_img.getGraphics();
-		
-		
-		paint(imageURL, g);
-		game_img.setIgnoreRepaint(true);
-		
-		System.err.println(imageURL);
-		g.dispose();
-		
-	}
-	
-	public void paint(String imageURL, Graphics g) {
-		game_img.paintComponents(g);
-		game_img.setIgnoreRepaint(true);
-		
-		BufferedImage img = null;
-		try {
-			URL iURL = new URL(imageURL);
-			img = ImageIO.read(iURL);
-		}
-		catch(IOException IE) {
-			IE.printStackTrace();
-		}
-		
-		g.drawImage(img, 0, 0, 100, 250, null);
-		
-		
-		//game_img.paintComponents(g);
-		
-		
 	}
 	
 	public void addWidgets() {
 		add(lbl_top);
 		add(lbl_name);
 		add(lbl_releaseDate);
-		add(game_img);
+		add(btnShowImage);
 		add(lbl_meta);
 		add(nameTxt);
 		add(rDateTxt);
@@ -155,7 +138,58 @@ public class ShowData extends Frame implements ActionListener{
 	
 	public void actionPerformed(ActionEvent e) {
 		
+		switch(((Button)e.getSource()).getName()){
+			default:
+				break;
+			case "btnReturn":
+				this.dispose();
+				break;
+			case "btnShow":
+				ShowImg appC = new ShowImg(imageUrl);
+				break;
+		}
+		
+	}
+
+	@Override
+	public void windowOpened(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowClosing(WindowEvent e) {
 		this.dispose();
+		
+	}
+
+	@Override
+	public void windowClosed(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowIconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeiconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowActivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeactivated(WindowEvent e) {
+		// TODO Auto-generated method stub
 		
 	}
 	
